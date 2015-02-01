@@ -2,12 +2,14 @@
 
 class mxResourceGetListProcessor extends modObjectGetListProcessor {
 	public $classKey = 'modResource';
-	//public $defaultSortField = 'modResource.menuindex';
-	//public $defaultSortDirection = 'ASC';
 	public $defaultSortField = 'modResource.menuindex';
 	public $defaultSortDirection = 'ASC';
 	public $checkListPermission = true;
 	protected $_permissions = array();
+	protected $_fields = array(
+		'id','pagetitle','longtitle','hidemenu','deleted',
+		'published','parent','context_key','class_key'
+	);
 
 
 	/**
@@ -16,7 +18,7 @@ class mxResourceGetListProcessor extends modObjectGetListProcessor {
 	 */
 	public function initialize() {
 		$this->setDefaultProperties(array(
-			'start' => $this->getProperty('offset', 0),
+			'start' => $this->getProperty('start', 0),
 			'limit' => $this->getProperty('parent') ? 20 : 0,
 			'sort' => $this->defaultSortField,
 			'dir' => $this->defaultSortDirection,
@@ -25,6 +27,15 @@ class mxResourceGetListProcessor extends modObjectGetListProcessor {
 		));
 		if ($mxManager = $this->modx->getService('mxManager')) {
 			$this->_permissions = $mxManager->getUserPermissions();
+		}
+
+		$pid = (int)$this->getProperty('parent');
+		if ($pid && $parent = $this->modx->getObject($this->classKey, $pid)) {
+			$class_key = $parent->get('class_key');
+			if ($class_key == 'TicketsSection') {
+				$this->setProperty('sort', $this->classKey . '.createdon');
+				$this->setProperty('dir', 'DESC');
+			}
 		}
 
 		return parent::initialize();
@@ -39,13 +50,7 @@ class mxResourceGetListProcessor extends modObjectGetListProcessor {
 		$c->where(array(
 			'parent' => $this->getProperty('parent')
 		));
-		$c->select($this->modx->getSelectColumns($this->classKey, $this->classKey, '',
-			array(
-				'id','pagetitle','longtitle','hidemenu','deleted',
-				'published','parent','context_key','class_key'
-			))
-			. ', COUNT(`Child`.`id`) as `children`'
-		);
+		$c->select($this->modx->getSelectColumns($this->classKey, $this->classKey, '', $this->_fields) . ', COUNT(`Child`.`id`) as `children`');
 		$c->groupby($this->classKey . '.id');
 
 		return $c;
@@ -56,9 +61,10 @@ class mxResourceGetListProcessor extends modObjectGetListProcessor {
 	 * @return array
 	 */
 	public function prepareRow(xPDOObject $object) {
-		$row = $object->toArray('', true, true);
-		$row['isfolder'] = (int)!empty($row['children']);
+		$row = $object->get($this->_fields);
+		$row['isfolder'] = $object->get('children') > 0;
 		$row['permissions'] = $this->_permissions;
+		$row['pagetitle'] = html_entity_decode($row['pagetitle'], ENT_QUOTES, $this->modx->getOption('modx_charset', null, 'UTF-8'));
 
 		return $row;
 	}
