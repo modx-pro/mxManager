@@ -14,9 +14,16 @@ class mxAuthProcessor extends modProcessor {
 		}
 
 		$sections = $this->getSections();
-		return is_array($sections)
-			? $this->success('', $sections)
-			: $this->failure($sections);
+		if (is_array($sections)) {
+			return $this->success('', array(
+				'rows' => $sections,
+				'count' => count($sections),
+				'total' => count($sections),
+			));
+		}
+		else {
+			return $this->failure($sections);
+		}
 	}
 
 	/**
