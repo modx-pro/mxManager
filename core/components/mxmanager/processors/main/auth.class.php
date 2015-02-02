@@ -15,10 +15,11 @@ class mxAuthProcessor extends modProcessor {
 
 		$sections = $this->getSections();
 		if (is_array($sections)) {
+			$version = $this->modx->getVersionData();
 			return $this->success('', array(
-				'rows' => $sections,
-				'count' => count($sections),
-				'total' => count($sections),
+				'sections' => $sections,
+				'site_url' => $this->modx->getOption('site_url'),
+				'version' => $version['full_appname'],
 			));
 		}
 		else {
@@ -38,6 +39,7 @@ class mxAuthProcessor extends modProcessor {
 		}
 
 		$permissions = array(
+			'view_site' => '',
 			'resources' => 'resource_tree',
 			//'elements' => 'element_tree',
 			//'files' => 'file_tree',
@@ -48,7 +50,7 @@ class mxAuthProcessor extends modProcessor {
 
 		$sections = array();
 		foreach ($permissions as $section => $permission) {
-			if ($this->modx->hasPermission($permission)) {
+			if (empty($permission) || $this->modx->hasPermission($permission)) {
 				$sections[] = $section;
 			}
 		}
