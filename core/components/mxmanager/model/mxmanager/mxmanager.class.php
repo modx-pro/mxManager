@@ -6,6 +6,7 @@
 class mxManager {
 	/* @var modX $modx */
 	public $modx;
+	protected $_version = "1.0-beta";
 
 
 	/**
@@ -43,8 +44,12 @@ class mxManager {
 
 
 	public function handleRequest(array $data) {
-		$action = $this->modx->stripTags($_REQUEST['mx_action']);
+		$version = $this->modx->stripTags($_REQUEST['mx_version']);
+		if (!empty($version) && !version_compare($this->_version, $version, '>=')) {
+			return $this->failure('mxmanager_err_version', array(), array('version' => $version));
+		}
 
+		$action = $this->modx->stripTags($_REQUEST['mx_action']);
 		if ($action == 'auth') {
 			$response = $this->getResponse($this->runProcessor('main/auth', $data));
 		}
