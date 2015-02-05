@@ -42,7 +42,7 @@ class mxAuthProcessor extends modProcessor {
 			'view_site' => '',
 			'resources' => 'resource_tree',
 			//'elements' => 'element_tree',
-			//'files' => 'file_tree',
+			'files' => 'file_tree',
 			'error_log' => 'error_log_view',
 			'manager_log' => 'logs',
 			'clear_cache' => 'empty_cache',
