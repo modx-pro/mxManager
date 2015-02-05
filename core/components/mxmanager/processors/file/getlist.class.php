@@ -6,66 +6,77 @@ class mxFileGetListProcessor extends modProcessor {
 	public $permission = 'source_view';
 	protected $_images = array();
 
+
 	/**
-	 * @return array|string
+	 * @return string
 	 */
 	public function process() {
 		$source = (int)$this->getProperty('source', 0);
 		if (!$source) {
-			$rows = $this->getSources();
-			if (count($rows) == 1) {
-				$source = $rows[0]['id'];
+			$result = $this->getSources();
+			if ($result['total'] == 1) {
+				$source = $result['rows'][0]['id'];
 				$this->setProperty('source', $source);
-				$rows = $this->getPath($source, '/');
+				$result = $this->getPath($source, '/');
 			}
 		}
 		else {
 			$path = $this->getProperty('path', '/');
-			$rows = $this->getPath($source, $path);
+			$result = $this->getPath($source, $path);
 		}
 
-		return $this->outputArray($rows);
+		return $this->outputArray($result['rows'], $result['total']);
 	}
 
+
 	/**
-	 * @return array|string
+	 * @return array
 	 */
 	public function getSources() {
-		$result = array();
+		$rows = array();
 		$c = $this->modx->newQuery($this->classKey);
+		$total = $this->modx->getCount($this->classKey);
+
 		$c->select('id, name, description');
 		$c->sortby('id', 'ASC');
 		$sources = $this->modx->getIterator($this->classKey, $c);
 		/** @var modMediaSource $source */
 		foreach ($sources as $source) {
 			if (!$source->checkPolicy('list')) {
+				$total -= 1;
 				continue;
 			}
-			$result[] = $this->_prepareSourceRow($source);
+			$rows[] = $this->_prepareSourceRow($source);
 		}
 
-		return $result;
+		return array(
+			'rows' => $rows,
+			'total' => $total
+		);
 	}
 
 	/**
 	 * @param $source_id
 	 * @param $path
-	 * @return array|string
+	 * @return array
 	 */
 	public function getPath($source_id, $path) {
-		$result = array();
+		$rows = array();
 		if ($source = $this->_getSource($source_id)) {
 			if ($source->checkPolicy('list')) {
 				$source->setRequestProperties($this->getProperties());
 				$source->initialize();
 				$list = $source->getContainerList($path);
 				foreach ($list as $item) {
-					$result[] = $this->_preparePathRow($item);
+					$rows[] = $this->_preparePathRow($item);
 				}
 			}
 		}
 
-		return $result;
+		return array(
+			'rows' => $rows,
+			'total' => count($rows)
+		);
 	}
 
 	/**

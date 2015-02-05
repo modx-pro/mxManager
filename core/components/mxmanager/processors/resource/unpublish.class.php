@@ -17,7 +17,9 @@ class mxResourceUnPublishProcessor extends modResourceUnPublishProcessor {
 				'id','pagetitle','longtitle','hidemenu','deleted',
 				'published','parent','context_key','class_key'
 			));
-			$resource['isfolder'] = $this->modx->getCount('modResource', array('parent' => $resource['id']));
+			$resource['type'] = $this->modx->getCount('modResource', array('parent' => $resource['id']))
+				? 'folder'
+				: 'resource';
 			if ($mxManager = $this->modx->getService('mxManager')) {
 				$resource['permissions'] = $mxManager->getUserPermissions();
 			}
