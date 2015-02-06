@@ -3,9 +3,7 @@
 class mxFileGetListProcessor extends modProcessor {
 	public $classKey = 'sources.modMediaSource';
 	public $languageTopics = array('sources', 'file');
-	public $permission = 'source_view';
-	protected $_images = array();
-
+	public $permission = 'file_tree';
 
 	/**
 	 * @return string

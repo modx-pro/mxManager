@@ -2,6 +2,8 @@
 
 class mxResourceGetListProcessor extends modProcessor {
 	public $classKey = 'modResource';
+	public $languageTopics = array('resource', 'context');
+	public $permission = 'resource_tree';
 	protected $_permissions = array();
 	protected $_fields = array(
 		'id', 'pagetitle', 'longtitle', 'hidemenu', 'deleted',
@@ -18,6 +20,7 @@ class mxResourceGetListProcessor extends modProcessor {
 			$result = $this->getContexts();
 			if ($result['total'] == 1) {
 				$context = $result['rows'][0]['key'];
+				$this->setProperty('context', $context);
 				$result = $this->getResources($context, 0);
 			}
 		}
