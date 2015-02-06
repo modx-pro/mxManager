@@ -41,7 +41,7 @@ class mxAuthProcessor extends modProcessor {
 		$permissions = array(
 			'view_site' => '',
 			'resources' => 'resource_tree',
-			//'elements' => 'element_tree',
+			'elements' => 'element_tree',
 			'files' => 'file_tree',
 			'error_log' => 'error_log_view',
 			'manager_log' => 'logs',
