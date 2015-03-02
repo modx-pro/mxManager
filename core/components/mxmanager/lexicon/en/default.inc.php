@@ -8,3 +8,5 @@ $_lang['mxmanager_err_access_denied'] = 'Authorization required! Perhaps your se
 $_lang['mxmanager_err_wrong_response'] = 'Error when processing the request.';
 $_lang['mxmanager_err_unknown_action'] = 'Invalid request.';
 $_lang['mxmanager_err_version'] = 'It is required to update server-side application up to version [[+version]].';
+
+$_lang['mxmanager_err_file_big'] = 'This file is too big for view: [[+size]].';

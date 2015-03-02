@@ -4,6 +4,7 @@ class mxFileGetListProcessor extends modProcessor {
 	public $classKey = 'sources.modMediaSource';
 	public $languageTopics = array('sources', 'file');
 	public $permission = 'file_tree';
+	protected $_images = array();
 
 	/**
 	 * @return string
@@ -84,6 +85,9 @@ class mxFileGetListProcessor extends modProcessor {
 	protected function _prepareSourceRow(modMediaSource $source) {
 		$row = $source->toArray('', true, true);
 		$row['type'] = 'source';
+		$row['permissions'] = array(
+			'view' => true,
+		);
 
 		return $row;
 	}
@@ -95,7 +99,8 @@ class mxFileGetListProcessor extends modProcessor {
 	protected function _preparePathRow(array $item) {
 		$row = array(
 			'source' => (int)$this->getProperty('source', 0),
-			'path' => $item['pathRelative'],
+			'path' => $item['path'],
+			'pathRelative' => $item['pathRelative'],
 			'name' => $item['text'],
 			'type' => $item['type'],
 			'chmod' => $item['perms'],
