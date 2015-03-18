@@ -2,7 +2,7 @@
 
 class mxElementGetListProcessor extends modProcessor {
 	public $classKey = 'modResource';
-	public $languageTopics = array('category','element');
+	public $languageTopics = array('category', 'element');
 	public $permission = 'element_tree';
 	protected $_types = array(
 		'template' => 'modTemplate',
@@ -12,24 +12,36 @@ class mxElementGetListProcessor extends modProcessor {
 		'plugin' => 'modPlugin',
 		'category' => 'modCategory',
 	);
+	protected $_permissions = array();
 
 
 	/**
 	 * @return string
 	 */
 	public function process() {
-		$section = $this->getProperty('section', '');
-		if (empty($section)) {
+		$create = false;
+		foreach ($this->_types as $type => $class) {
+			$this->_permissions['new_' . $type] = $this->modx->hasPermission('new_' . $type);
+			if ($create === false && $this->_permissions['new_' . $type] === true) {
+				$create = true;
+			}
+		}
+		$this->_permissions['create'] = $create;
+		$this->_permissions['update'] = $this->modx->hasPermission('save_category');
+		$this->_permissions['remove'] = $this->modx->hasPermission('delete_category');
+
+		$type = $this->getProperty('type', '');
+		if (empty($type)) {
 			$result = $this->getSections();
 			if ($result['total'] == 1) {
-				$section = $result['rows'][0]['type'];
-				$this->setProperty('section', $section);
-				$result = $this->getElements($section, 0);
+				$type = $type['rows'][0]['type'];
+				$this->setProperty('section', $type);
+				$result = $this->getElements($type, 0);
 			}
 		}
 		else {
 			$category = $this->getProperty('category', 0);
-			$result = $this->getElements($section, $category);
+			$result = $this->getElements($type, $category);
 		}
 
 		return $this->outputArray($result['rows'], $result['total']);
@@ -42,63 +54,40 @@ class mxElementGetListProcessor extends modProcessor {
 		$rows = array();
 		$sections = array(
 			'view_template' => array(
-				'section' => 'template',
-				'type' => 'section',
-				'title' => $this->modx->lexicon('templates'),
-				'permissions' => array(
-					'new_template' => $this->modx->hasPermission('new_template'),
-					'new_category' =>$this->modx->hasPermission('new_category'),
-				),
+				'type' => 'template',
+				'name' => $this->modx->lexicon('templates'),
+				'permissions' => $this->_permissions,
 			),
 			'view_tv' => array(
-				'section' => 'tv',
-				'type' => 'section',
-				'title' => $this->modx->lexicon('tmplvars'),
-				'permissions' => array(
-					'new_tv' => $this->modx->hasPermission('new_tv'),
-					'new_category' =>$this->modx->hasPermission('new_category'),
-				),
+				'type' => 'tv',
+				'name' => $this->modx->lexicon('tmplvars'),
+				'permissions' => $this->_permissions,
 			),
 			'view_chunk' => array(
-				'section' => 'chunk',
-				'type' => 'section',
-				'title' => $this->modx->lexicon('chunks'),
-				'permissions' => array(
-					'new_chunk' => $this->modx->hasPermission('new_chunk'),
-					'new_category' =>$this->modx->hasPermission('new_category'),
-				),
+				'type' => 'chunk',
+				'name' => $this->modx->lexicon('chunks'),
+				'permissions' => $this->_permissions,
 			),
 			'view_snippet' => array(
-				'section' => 'snippet',
-				'type' => 'section',
-				'title' => $this->modx->lexicon('snippets'),
-				'permissions' => array(
-					'new_snippet' => $this->modx->hasPermission('new_snippet'),
-					'new_category' =>$this->modx->hasPermission('new_category'),
-				),
+				'type' => 'snippet',
+				'name' => $this->modx->lexicon('snippets'),
+				'permissions' => $this->_permissions,
 			),
 			'view_plugin' => array(
-				'section' => 'plugin',
-				'type' => 'section',
-				'title' => $this->modx->lexicon('plugins'),
-				'permissions' => array(
-					'new_plugin' => $this->modx->hasPermission('new_plugin'),
-					'new_category' => $this->modx->hasPermission('new_category'),
-				),
-			),
+				'type' => 'plugin',
+				'name' => $this->modx->lexicon('plugins'),
+				'permissions' => $this->_permissions,
+			),/*
 			'view_category' => array(
-				'section' => 'category',
-				'type' => 'section',
-				'title' => $this->modx->lexicon('categories'),
-				'permissions' => array(
-					'new_category' => $this->modx->hasPermission('new_category'),
-				),
-			),
+				'type' => 'category',
+				'name' => $this->modx->lexicon('categories'),
+				'permissions' => $this->_permissions,
+			),*/
 		);
 
-		foreach ($sections as $permission => $row) {
+		foreach ($sections as $permission => $section) {
 			if ($this->modx->hasPermission($permission)) {
-				$rows[] = $row;
+				$rows[] = $section;
 			}
 		}
 
@@ -109,45 +98,48 @@ class mxElementGetListProcessor extends modProcessor {
 	}
 
 	/**
-	 * @param $section
+	 * @param $type
 	 * @param int $category_id
+	 *
 	 * @return array
 	 */
-	public function getElements($section, $category_id = 0) {
-		if ($section == 'category') {
+	public function getElements($type, $category_id = 0) {
+		if ($type == 'category') {
 			return $this->getCategories($category_id);
 		}
 		$rows = array();
-		$class = $this->_types[$section];
+		$class = $this->_types[$type];
 
 		// Get categories
 		$c = $this->modx->newQuery('modCategory');
-		$c->select($this->modx->getSelectColumns('modCategory', 'modCategory'));
-		$c->select('COUNT(' . $class . '.id) as elements, COUNT(Children.id) as categories');
 		$c->leftJoin($class, $class, $class . '.category = modCategory.id');
 		$c->leftJoin('modCategory', 'Children');
+		$c->select($this->modx->getSelectColumns('modCategory', 'modCategory'));
+		$c->select('COUNT(' . $class . '.id) as elements, COUNT(Children.id) as categories');
 		$c->where('modCategory.parent = ' . $category_id);
-		$c->having('elements > 0 OR categories > 0');
+		//$c->having('elements > 0 OR categories > 0');
 		$c->sortby('modCategory.category', 'ASC');
 		$c->groupby('modCategory.id');
-		$categories = $this->modx->getIterator('modCategory',$c);
+		$categories = $this->modx->getIterator('modCategory', $c);
 		/** @var modCategory $category */
 		foreach ($categories as $category) {
 			if (!$category->checkPolicy('list')) {
 				continue;
 			}
+			/*
 			elseif ($category->get('categories') > 0 && $category->get('elements') < 1) {
 				if (!$this->_haveElements($category->get('id'), $class)) {
 					continue;
 				}
 			}
+			*/
 			$rows[] = $this->_prepareCategoryRow($category);
 		}
 
 		// Get elements
 		$c = $this->modx->newQuery($class);
 		$c->where(array('category' => $category_id));
-		$c->sortby($class == 'modTemplate' ? 'templatename' : 'name','ASC');
+		$c->sortby($class == 'modTemplate' ? 'templatename' : 'name', 'ASC');
 		$elements = $this->modx->getIterator($class, $c);
 		/** @var modElement $element */
 		foreach ($elements as $element) {
@@ -166,6 +158,7 @@ class mxElementGetListProcessor extends modProcessor {
 
 	/**
 	 * @param int $category_id
+	 *
 	 * @return array
 	 */
 	public function getCategories($category_id = 0) {
@@ -176,21 +169,12 @@ class mxElementGetListProcessor extends modProcessor {
 			'parent' => $category_id
 		));
 		$c->sortby('modCategory.category', 'ASC');
-		$c->select($this->modx->getSelectColumns('modCategory','modCategory'));
+		$c->select($this->modx->getSelectColumns('modCategory', 'modCategory'));
 		$c->select('COUNT(Children.id) as categories');
-		$c->leftJoin('modCategory','Children');
+		$c->leftJoin('modCategory', 'Children');
 		$c->groupby('modCategory.id');
 
-		$permissions = array();
-		$types = array('template','tv','chunk','snippet','plugin');
-		foreach ($types as $type) {
-			$permissions['new_' . $type] = $this->modx->hasPermission('new_' . $type);
-		}
-		$permissions['new_category'] = $this->modx->hasPermission('new_category');
-		$permissions['edit_category'] = $this->modx->hasPermission('edit_category');
-		$permissions['delete_category'] = $this->modx->hasPermission('delete_category');
-
-		$categories = $this->modx->getIterator('modCategory',$c);
+		$categories = $this->modx->getIterator('modCategory', $c);
 		/** @var modCategory $category */
 		foreach ($categories as $category) {
 			if (!$category->checkPolicy('list')) {
@@ -199,11 +183,10 @@ class mxElementGetListProcessor extends modProcessor {
 
 			$rows[] = array(
 				'id' => $category->get('id'),
-				'title' => $category->get('category'),
+				'name' => $category->get('category'),
 				'categories' => (int)$category->get('categories'),
-				'section' => 'category',
 				'type' => 'category',
-				'permissions' => $permissions,
+				'permissions' => $this->_permissions,
 			);
 		}
 
@@ -215,44 +198,38 @@ class mxElementGetListProcessor extends modProcessor {
 
 	/**
 	 * @param modCategory $category
+	 *
 	 * @return array
 	 */
 	protected function _prepareCategoryRow(modCategory $category) {
-		$section = $this->getProperty('section');
+		$type = $this->getProperty('type');
 		$row = array(
 			'id' => $category->get('id'),
-			'title' => $category->get('category'),
+			'name' => $category->get('category'),
 			'categories' => (int)$category->get('categories'),
+			'elements' => (int)$category->get('elements'),
 		);
-		$row['section'] = $section;
 		$row['type'] = 'category';
-		$row['permissions'] = array(
-			'new_category' => $this->modx->hasPermission('new_category'),
-			'edit_category' => $this->modx->hasPermission('edit_category'),
-			'delete_category' => $this->modx->hasPermission('delete_category'),
-		);
-		if ($section = $this->getProperty('section', '')) {
-			$row['permissions']['new_' . $section] = $this->modx->hasPermission('new_' . $section);
-		}
+		$row['permissions'] = $this->_permissions;
 
 		return $row;
 	}
 
 	/**
 	 * @param modElement $element
+	 *
 	 * @return array|mixed|null
 	 */
 	protected function _prepareElementRow(modElement $element) {
-		$section = $this->getProperty('section');
+		$type = $this->getProperty('type');
 		$row = $element->get(array('id', 'description', 'disabled'));
-		$row['title'] = $section == 'template'
+		$row['name'] = $type == 'template'
 			? $element->get('templatename')
 			: $element->get('name');
-		$row['section'] = $section;
-		$row['type'] = 'element';
+		$row['type'] = $type;
 		$row['permissions'] = array(
-			'save' => $element->checkPolicy('save'),
-			'view' => $element->checkPolicy('view'),
+			'update' => $element->checkPolicy('save'),
+			//'view' => $element->checkPolicy('view'),
 			'remove' => $element->checkPolicy('remove'),
 		);
 
@@ -262,6 +239,7 @@ class mxElementGetListProcessor extends modProcessor {
 	/**
 	 * @param $id
 	 * @param $class
+	 *
 	 * @return bool
 	 */
 	protected function _haveElements($id, $class) {

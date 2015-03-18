@@ -17,7 +17,7 @@ class mxAuthProcessor extends modProcessor {
 		if (is_array($sections)) {
 			$version = $this->modx->getVersionData();
 			return $this->success('', array(
-				'sections' => $sections,
+				'rows' => $sections,
 				'site_url' => $this->modx->getOption('site_url'),
 				'version' => $version['full_appname'],
 			));

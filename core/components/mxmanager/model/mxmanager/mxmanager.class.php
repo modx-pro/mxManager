@@ -49,6 +49,8 @@ class mxManager {
 			return $this->failure('mxmanager_err_version', array(), array('version' => $version));
 		}
 
+		//$this->modx->log(modX::LOG_LEVEL_ERROR, print_r($data, true));
+
 		$action = $this->modx->stripTags($_REQUEST['mx_action']);
 		if ($action == 'auth') {
 			$response = $this->getResponse($this->runProcessor('main/auth', $data));
@@ -75,6 +77,33 @@ class mxManager {
 			'unpublish' => $this->modx->hasPermission('unpublish_document'),
 			'duplicate' => $this->modx->hasPermission('resource_duplicate'),
 		);
+	}
+
+
+	public function getElementCategories() {
+		$categories = array();
+		if (!class_exists('modElementCategoryGetListProcessor')) {
+			require MODX_CORE_PATH . 'model/modx/processors/element/category/getlist.class.php';
+		}
+		$processor = new modElementCategoryGetListProcessor($this->modx, array(
+			'limit' => 0,
+			'query' => '',
+			'showNone' => true,
+		));
+		$processor->initialize();
+		$beforeQuery = $processor->beforeQuery();
+		if ($beforeQuery === true) {
+			$data = $processor->getData();
+			$tmp = $processor->iterate($data);
+			foreach ($tmp as $item) {
+				$categories[] = array(
+					'id' => (int)$item['id'],
+					'name' => $item['name']
+				);
+			}
+		}
+
+		return $categories;
 	}
 
 
