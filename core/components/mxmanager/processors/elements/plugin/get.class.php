@@ -27,6 +27,7 @@ class mxPluginGetProcessor extends modPluginGetProcessor {
 			'id', 'name', 'description', 'category'
 		));
 		$data['content'] = base64_encode($this->object->get('content'));
+		$data['disabled'] = (int)$this->object->get('disabled');
 		/** @var mxManager $mxManager */
 		if ($mxManager = $this->modx->getService('mxManager')) {
 			$data['categories'] = $mxManager->getElementCategories();
