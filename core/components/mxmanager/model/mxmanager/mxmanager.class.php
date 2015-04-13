@@ -43,6 +43,11 @@ class mxManager {
 	}
 
 
+	/**
+	 * @param array $data
+	 *
+	 * @return array
+	 */
 	public function handleRequest(array $data) {
 		$version = $this->modx->stripTags($_REQUEST['mx_version']);
 		if (!empty($version) && !version_compare($this->_version, $version, '>=')) {
@@ -50,6 +55,7 @@ class mxManager {
 		}
 
 		//$this->modx->log(modX::LOG_LEVEL_ERROR, print_r($data, true));
+		//$this->modx->log(modX::LOG_LEVEL_ERROR, http_build_query($data));
 
 		$action = $this->modx->stripTags($_REQUEST['mx_action']);
 		if ($action == 'auth') {
@@ -66,6 +72,9 @@ class mxManager {
 	}
 
 
+	/**
+	 * @return array
+	 */
 	public function getUserPermissions() {
 		return array(
 			'save' => $this->modx->hasPermission('save_document'),
@@ -76,10 +85,18 @@ class mxManager {
 			'publish' => $this->modx->hasPermission('publish_document'),
 			'unpublish' => $this->modx->hasPermission('unpublish_document'),
 			'duplicate' => $this->modx->hasPermission('resource_duplicate'),
+
+			'new_document' => $this->modx->hasPermission('new_document'),
+			'new_weblink' => $this->modx->hasPermission('new_weblink'),
+			'new_symlink' => $this->modx->hasPermission('new_symlink'),
+			'new_static_resource' => $this->modx->hasPermission('new_static_resource'),
 		);
 	}
 
 
+	/**
+	 * @return array
+	 */
 	public function getElementCategories() {
 		$categories = array();
 		if (!class_exists('modElementCategoryGetListProcessor')) {
@@ -107,6 +124,72 @@ class mxManager {
 	}
 
 
+	/**
+	 * @param string $class
+	 * @param array $permissions
+	 *
+	 * @return array
+	 */
+	public function getSubClasses($class = '', array $permissions = array()) {
+		$classes = array();
+
+		switch ($class) {
+			case 'TicketsSection':
+				$classes = array(
+					'Ticket'
+				);
+				break;
+			case 'Ticket':
+				break;
+			case 'msCategory':
+				$classes = array(
+					'msCategory',
+					'msProduct',
+				);
+				break;
+			case 'msProduct':
+				break;
+			case 'ArticlesContainer':
+				$classes = array(
+					'Article'
+				);
+				break;
+			case 'Article':
+				break;
+			default:
+				if (empty($permissions) || !empty($permissions['new_document'])) {
+					$classes[] = 'modDocument';
+				}
+				if (empty($permissions) || !empty($permissions['new_weblink'])) {
+					$classes[] = 'modWebLink';
+				}
+				if (empty($permissions) || !empty($permissions['new_symlink'])) {
+					$classes[] = 'modSymLink';
+				}
+				if (empty($permissions) || !empty($permissions['new_static_resource'])) {
+					$classes[] = 'modStaticResource';
+				}
+				if (!empty($this->modx->classMap['modResource']) && in_array('TicketsSection', $this->modx->classMap['modResource'])) {
+					$classes[] = 'TicketsSection';
+				}
+				if (!empty($this->modx->classMap['modResource']) && in_array('msCategory', $this->modx->classMap['modResource'])) {
+					$classes[] = 'msCategory';
+				}
+				if (!empty($this->modx->classMap['modResource']) && in_array('ArticlesContainer', $this->modx->classMap['modResource'])) {
+					$classes[] = 'ArticlesContainer';
+				}
+		}
+
+		return $classes;
+	}
+
+
+	/**
+	 * @param $name
+	 * @param $data
+	 *
+	 * @return mixed
+	 */
 	protected function runProcessor($name, $data) {
 		return $this->modx->runProcessor($name, $data, array(
 			'processors_path' => $this->config['processorsPath']
@@ -114,6 +197,13 @@ class mxManager {
 	}
 
 
+	/**
+	 * @param string $message
+	 * @param array $data
+	 * @param array $placeholders
+	 *
+	 * @return array
+	 */
 	protected function success($message = '', $data = array(), $placeholders = array()) {
 		return array(
 			'success' => true,
@@ -123,6 +213,13 @@ class mxManager {
 	}
 
 
+	/**
+	 * @param string $message
+	 * @param array $data
+	 * @param array $placeholders
+	 *
+	 * @return array
+	 */
 	protected function failure($message = '', $data = array(), $placeholders = array()) {
 		return array(
 			'success' => false,
@@ -131,6 +228,11 @@ class mxManager {
 		);
 	}
 
+	/**
+	 * @param $response
+	 *
+	 * @return array|bool
+	 */
 	protected function getResponse($response) {
 		if (!($response instanceof modProcessorResponse)) {
 			return false;
@@ -151,13 +253,20 @@ class mxManager {
 			$res = $this->modx->fromJSON($res);
 			// Response from GetList processors
 			if (is_array($res) && isset($res['results'])) {
-				return $this->success($response->getMessage(), array(
+				$data = array(
 					'total' => (int)$res['total'],
 					'count' => count($res['results']),
 					'rows' => !empty($res['results'])
 						? $res['results']
 						: array(),
-				));
+				);
+				unset($res['total'], $res['results'], $res['success']);
+				if (count($res) > 0) {
+					foreach ($res as $key => $value) {
+						$data[$key] = $value;
+					}
+				}
+				return $this->success($response->getMessage(), $data);
 			}
 			else {
 				return $this->failure('mxmanager_err_wrong_response');

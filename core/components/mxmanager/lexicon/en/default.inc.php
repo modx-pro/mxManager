@@ -10,3 +10,4 @@ $_lang['mxmanager_err_unknown_action'] = 'Invalid request.';
 $_lang['mxmanager_err_version'] = 'It is required to update server-side application up to version [[+version]].';
 
 $_lang['mxmanager_err_file_big'] = 'This file is too big for view: [[+size]].';
+$_lang['mxmanager_err_no_elem_type'] = 'You must specify the type of element.';

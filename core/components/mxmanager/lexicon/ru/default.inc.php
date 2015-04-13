@@ -10,3 +10,4 @@ $_lang['mxmanager_err_unknown_action'] = 'Неверный запрос.';
 $_lang['mxmanager_err_version'] = 'Требуется обновление приложения на сервере до версии [[+version]].';
 
 $_lang['mxmanager_err_file_big'] = 'Файл слишком большой для просмотра: [[+size]].';
+$_lang['mxmanager_err_no_elem_type'] = 'Вы должны указать тип элемента.';

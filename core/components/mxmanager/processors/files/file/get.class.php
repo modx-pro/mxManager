@@ -31,6 +31,9 @@ class mxFileGetProcessor extends modBrowserFileGetProcessor {
 			$process['object']['path'] = rtrim(preg_replace('#' . $process['object']['basename'] . '$#', '', $process['object']['name']), '/') . '/';
 			$process['object']['name'] = $process['object']['basename'];
 			unset($process['object']['basename']);
+
+			$process['object']['last_accessed'] = date('Y-m-d H:i:s', strtotime($process['object']['last_accessed']));
+			$process['object']['last_modified'] = date('Y-m-d H:i:s', strtotime($process['object']['last_modified']));
 		}
 
 		return $process;

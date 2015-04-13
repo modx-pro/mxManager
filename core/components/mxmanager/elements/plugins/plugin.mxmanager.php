@@ -15,7 +15,15 @@ switch ($modx->event->name) {
 
 		$response = $mxManager->handleRequest($_REQUEST);
 		@session_write_close();
-		exit($modx->toJSON($response));
+		if (empty($_REQUEST['debug'])) {
+			exit($modx->toJSON($response));
+		}
+		else {
+			echo '<pre>';
+			print_r($response);
+			echo '</pre>';
+			die;
+		}
 		break;
 
 }

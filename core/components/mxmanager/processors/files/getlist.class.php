@@ -14,9 +14,17 @@ class mxFileGetListProcessor extends modProcessor {
 		if (!$source) {
 			$result = $this->getSources();
 			if ($result['total'] == 1) {
-				$source = $result['rows'][0]['id'];
-				$this->setProperty('source', $source);
-				$result = $this->getPath($source, '/');
+				$source = $result['rows'][0];
+				$this->setProperty('source', $source['id']);
+				$result = $this->getPath($source['id'], '/');
+
+				return $this->modx->toJSON(array(
+					'success' => true,
+					'total' => $result['total'],
+					'results' => $result['rows'],
+					'source' => $source['id'],
+					'permissions' => $source['permissions'],
+				));
 			}
 		}
 		else {
@@ -87,6 +95,7 @@ class mxFileGetListProcessor extends modProcessor {
 		$row['type'] = 'source';
 		$row['permissions'] = array(
 			'view' => true,
+			'create' => true,
 		);
 
 		return $row;

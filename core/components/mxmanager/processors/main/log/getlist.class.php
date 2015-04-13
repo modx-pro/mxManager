@@ -4,6 +4,14 @@ require MODX_CORE_PATH . 'model/modx/processors/system/log/getlist.class.php';
 
 class mxSystemLogGetListProcessor extends modSystemLogGetListProcessor {
 
+	public function initialize() {
+		$this->setDefaultProperties(array(
+			'dateFormat' => 'Y-m-d H:i:s',
+		));
+
+		return parent::initialize();
+	}
+
 	public function prepareLog(modManagerLog $log) {
 		$logArray = parent::prepareLog($log);
 		unset(
