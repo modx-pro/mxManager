@@ -82,6 +82,13 @@ class mxResourceCreateProcessor extends modResourceCreateProcessor {
 	 * @return array|string
 	 */
 	public function cleanup() {
+		if (!empty($this->_processor)) {
+			$this->_processor->cleanup();
+		}
+		else {
+			parent::cleanup();
+		}
+
 		$get = require 'get.class.php';
 		/** @var mxResourceGetProcessor $processor */
 		$processor = new $get($this->modx, array(

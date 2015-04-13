@@ -140,19 +140,11 @@ class mxResourceGetProcessor extends modResourceGetProcessor {
 
 			if ($ctxSetting) {
 				$sessionEnabled = $ctxSetting->get('value') == 0
-					?
-					array('preview' => 'true')
+					? array('preview' => 'true')
 					: '';
 			}
 
-			$previewUrl = $this->modx->makeUrl(
-				$this->object->get('id'),
-				$this->object->get('context_key'),
-				$sessionEnabled,
-				'full',
-				array(
-					'xhtml_urls' => false
-				));
+			$previewUrl = $this->modx->makeUrl($this->object->get('id'), $this->object->get('context_key'), $sessionEnabled, 'full');
 		}
 
 		return $previewUrl;
