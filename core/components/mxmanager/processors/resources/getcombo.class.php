@@ -53,7 +53,7 @@ class mxResourceGetComboProcessor extends mxResourceGetListProcessor {
 		$c->limit($limit, $start);
 		$c->sortby($this->classKey . '.parent ASC,' . $this->classKey . '.menuindex', 'ASC');
 		$c->leftJoin($this->classKey, 'Child', array($this->classKey . '.id = Child.parent'));
-		$c->select($this->modx->getSelectColumns($this->classKey, $this->classKey, '', $this::$fields) . ', COUNT(`Child`.`id`) as `children`');
+		$c->select($this->modx->getSelectColumns($this->classKey, $this->classKey, '', $this->fields) . ', COUNT(`Child`.`id`) as `children`');
 		$c->groupby($this->classKey . '.id');
 		$resources = $this->modx->getIterator($this->classKey, $c);
 		/** @var modResource $resource */
@@ -70,7 +70,7 @@ class mxResourceGetComboProcessor extends mxResourceGetListProcessor {
 			$resource->set('id', 0);
 			$resource->set('pagetitle', $this->modx->lexicon('no'));
 			$resource->set('published', true);
-			$resource = $resource->get($this::$fields);
+			$resource = $resource->get($this->fields);
 			$resource['children'] = 0;
 			$rows = array_merge(array($this->_prepareResourceRow($resource)), $rows);
 		}
