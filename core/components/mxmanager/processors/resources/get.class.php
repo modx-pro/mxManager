@@ -129,7 +129,10 @@ class mxResourceGetProcessor extends modResourceGetProcessor {
 	 * @return string
 	 */
 	public function getPreviewUrl() {
-		$previewUrl = '';
+		$previewUrl = $this->getProperty('previewUrl', '');
+		if (!empty($previewUrl)) {
+			return $previewUrl;
+		}
 
 		if ($this->object->get('id') && !$this->object->get('deleted')) {
 			$sessionEnabled = '';

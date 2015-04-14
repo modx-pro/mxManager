@@ -50,7 +50,9 @@ class mxResourceUpdateProcessor extends modResourceUpdateProcessor {
 			$this->beforeSet();
 			$this->_processor->setProperties($this->getProperties());
 			$this->_processor->process();
-			return $this->cleanup();
+			return $this->_processor->hasErrors()
+				? $this->failure()
+				: $this->cleanup();
 		}
 		else {
 			return parent::process();
@@ -84,16 +86,16 @@ class mxResourceUpdateProcessor extends modResourceUpdateProcessor {
 	public function cleanup() {
 		if (!empty($this->_processor)) {
 			$this->_processor->cleanup();
+			$id = $this->_processor->object->get('id');
 		}
 		else {
 			parent::cleanup();
+			$id = $this->object->get('id');
 		}
 
 		$get = require 'get.class.php';
 		/** @var mxResourceGetProcessor $processor */
-		$processor = new $get($this->modx, array(
-			'id' => $this->object->get('id')
-		));
+		$processor = new $get($this->modx, array('id' => $id));
 		$processor->initialize();
 
 		return $processor->process();

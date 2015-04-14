@@ -244,6 +244,9 @@ class mxManager {
 				unset($all[0]);
 				sort($all);
 			}
+			elseif (!empty($all[0]) && empty($message)) {
+				$message = implode("\n", $all);
+			}
 			return $this->failure($message, $all);
 
 		}

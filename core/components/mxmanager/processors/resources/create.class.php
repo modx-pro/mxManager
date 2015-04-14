@@ -50,7 +50,9 @@ class mxResourceCreateProcessor extends modResourceCreateProcessor {
 			$this->beforeSet();
 			$this->_processor->setProperties($this->getProperties());
 			$this->_processor->process();
-			return $this->cleanup();
+			return $this->_processor->hasErrors()
+				? $this->failure()
+				: $this->cleanup();
 		}
 		else {
 			return parent::process();
@@ -84,16 +86,35 @@ class mxResourceCreateProcessor extends modResourceCreateProcessor {
 	public function cleanup() {
 		if (!empty($this->_processor)) {
 			$this->_processor->cleanup();
+			$id = $this->_processor->object->get('id');
+			$context_key = $this->_processor->object->get('context_key');
 		}
 		else {
 			parent::cleanup();
+			$id = $this->object->get('id');
+			$context_key = $this->object->get('context_key');
 		}
+
+		/** @var modContext $context */
+		if ($this->getProperty('syncsite') && $context = $this->modx->getObject('modContext', array('key' => $context_key))) {
+			$context->prepare(true);
+
+			$sessionEnabled = '';
+			if (isset($context->config['session_enabled'])) {
+				$sessionEnabled = $context->config['session_enabled'] == 0
+					? array('preview' => 'true')
+					: '';
+			}
+			$previewUrl = $context->makeUrl($id, $sessionEnabled, 'full');
+		}
+		else {
+			$previewUrl = '';
+		}
+
 
 		$get = require 'get.class.php';
 		/** @var mxResourceGetProcessor $processor */
-		$processor = new $get($this->modx, array(
-			'id' => $this->object->get('id')
-		));
+		$processor = new $get($this->modx, array('id' => $id, 'previewUrl' => $previewUrl));
 		$processor->initialize();
 
 		return $processor->process();
