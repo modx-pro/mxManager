@@ -93,6 +93,9 @@ class mxResourceGetTVsProcessor extends modObjectProcessor {
 				? array_map('trim', explode($multiple[$type], $value))
 				: array();
 		}
+		if ($type == 'date') {
+			$value = date('Y-m-d H:i:s O', strtotime($value));
+		}
 
 		return $value;
 	}
