@@ -164,6 +164,9 @@ class mxResourceGetListProcessor extends modProcessor {
 	protected function _prepareContextRow(modContext $context) {
 		$row = $context->toArray('', false, true);
 		$row['type'] = 'context';
+		if (empty($row['name'])) {
+			$row['name'] = $row['key'];
+		}
 
 		return $row;
 	}

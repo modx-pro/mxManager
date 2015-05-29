@@ -1,5 +1,9 @@
 Changelog for mxManager.
 
+1.0.1-pl
+==============
+- Fixed app crash on multiple contexts with empty names.
+
 1.0.0-pl
 ==============
 - Initial version

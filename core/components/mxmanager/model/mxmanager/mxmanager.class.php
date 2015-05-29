@@ -6,7 +6,7 @@
 class mxManager {
 	/* @var modX $modx */
 	public $modx;
-	protected $_version = "1.0.0-pl";
+	protected $_version = "1.0.1-pl";
 
 
 	/**
