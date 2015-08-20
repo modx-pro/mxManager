@@ -1,5 +1,9 @@
 Changelog for mxManager.
 
+1.0.2-pl
+==============
+- [#14] Plugin is not static anymore.
+
 1.0.1-pl
 ==============
 - Fixed app crash on multiple contexts with empty names.
