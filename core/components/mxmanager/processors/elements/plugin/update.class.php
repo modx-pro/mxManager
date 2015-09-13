@@ -33,6 +33,11 @@ class mxPluginUpdateProcessor extends modPluginUpdateProcessor {
 		}
 		$this->setProperty('events', $events);
 
+		$disabled = $this->getProperty('disabled');
+		if ($disabled === null) {
+			$this->setProperty('disabled', $this->object->get('disabled'));
+		}
+
 		return parent::beforeSet();
 	}
 
